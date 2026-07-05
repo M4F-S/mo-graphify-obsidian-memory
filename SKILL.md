@@ -422,7 +422,7 @@ class PgVectorStore:
         with self._conn() as conn:
             with conn.cursor() as cur:
                 where = "WHERE status = 'active'"
-                params = [query_embedding, top_k]
+                params = [query_embedding, query_embedding, top_k]
                 
                 if filters:
                     if filters.get("tags"):
