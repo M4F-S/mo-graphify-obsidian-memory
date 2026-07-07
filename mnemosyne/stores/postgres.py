@@ -5,12 +5,14 @@ import logging
 import threading
 from typing import List, Dict, Optional
 
+from mnemosyne.stores.base import MemoryStore
+
 logger = logging.getLogger("unified-memory")
 
 DB_DSN = os.environ.get("MEMORY_DB_DSN", "postgresql://localhost:5432/mnemosyne")
 
 
-class PgVectorStore:
+class PgVectorStore(MemoryStore):
     """
     PostgreSQL-backed store with pgvector for semantic search,
     tsvector for keyword search, and recursive CTEs for graph traversal.
