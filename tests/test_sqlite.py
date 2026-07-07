@@ -53,7 +53,7 @@ class TestSQLiteStore:
             "Source", "content", [], "concept", "active", 0.5,
             [0.1] * 384, "/tmp/vault"
         )
-        id2 = store.upsert_note(
+        store.upsert_note(
             "Target", "content", [], "concept", "active", 0.5,
             [0.1] * 384, "/tmp/vault"
         )
