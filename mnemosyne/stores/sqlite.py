@@ -5,6 +5,7 @@ import json
 import math
 import logging
 import sqlite3
+import uuid
 from typing import List, Dict, Optional
 
 from mnemosyne.stores.base import MemoryStore
@@ -56,8 +57,10 @@ class SQLiteStore(MemoryStore):
 
                 CREATE TABLE IF NOT EXISTS links (
                     id TEXT PRIMARY KEY,
-                    source_note_id TEXT NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
-                    target_note_id TEXT NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+                    source_note_id TEXT NOT NULL
+                        REFERENCES notes(id) ON DELETE CASCADE,
+                    target_note_id TEXT NOT NULL
+                        REFERENCES notes(id) ON DELETE CASCADE,
                     link_type TEXT DEFAULT 'wiki',
                     created_at TEXT NOT NULL DEFAULT (datetime('now')),
                     UNIQUE(source_note_id, target_note_id)
@@ -75,7 +78,8 @@ class SQLiteStore(MemoryStore):
 
                 CREATE INDEX IF NOT EXISTS notes_status_idx ON notes(status);
                 CREATE INDEX IF NOT EXISTS notes_type_idx ON notes(note_type);
-                CREATE INDEX IF NOT EXISTS prospective_trigger_idx ON prospective(trigger_at);
+                CREATE INDEX IF NOT EXISTS prospective_trigger_idx
+                    ON prospective(trigger_at);
                 """
             )
             conn.commit()
@@ -93,8 +97,6 @@ class SQLiteStore(MemoryStore):
         vault_path: str,
     ) -> str:
         """Insert or update a note."""
-        import uuid
-
         note_id = str(uuid.uuid4())
         with self._conn() as conn:
             # Check if note exists
@@ -108,7 +110,8 @@ class SQLiteStore(MemoryStore):
                     """
                     UPDATE notes SET
                         content = ?, tags = ?, note_type = ?, status = ?,
-                        salience = ?, embedding = ?, updated_at = datetime('now')
+                        salience = ?, embedding = ?,
+                        updated_at = datetime('now')
                     WHERE id = ?
                 """,
                     (
@@ -124,7 +127,10 @@ class SQLiteStore(MemoryStore):
             else:
                 conn.execute(
                     """
-                    INSERT INTO notes (id, title, content, tags, note_type, status, salience, embedding, vault_path)
+                    INSERT INTO notes (
+                        id, title, content, tags, note_type,
+                        status, salience, embedding, vault_path
+                    )
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
@@ -153,7 +159,8 @@ class SQLiteStore(MemoryStore):
             return cur.rowcount > 0
 
     def search_semantic(
-        self, query_embedding: List[float], top_k: int = 10, filters: Optional[Dict] = None
+        self, query_embedding: List[float], top_k: int = 10,
+        filters: Optional[Dict] = None
     ) -> List[Dict]:
         """Brute-force cosine similarity in Python."""
         with self._conn() as conn:
@@ -179,7 +186,7 @@ class SQLiteStore(MemoryStore):
         return results[:top_k]
 
     def search_keyword(self, query: str, top_k: int = 10) -> List[Dict]:
-        """Simple substring search (SQLite has no native full-text in default build)."""
+        """Simple substring search (SQLite has no native full-text)."""
         terms = query.lower().split()
         with self._conn() as conn:
             rows = conn.execute(
@@ -189,14 +196,18 @@ class SQLiteStore(MemoryStore):
         results = []
         for row in rows:
             text = (row["title"] + " " + row["content"]).lower()
-            score = sum(1 for term in terms if term in text) / len(terms) if terms else 0
+            score = (
+                sum(1 for term in terms if term in text) / len(terms)
+                if terms else 0
+            )
             if score > 0:
                 results.append({**dict(row), "score": score})
 
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
 
-    def search_graph(self, note_title: str, depth: int = 2, top_k: int = 10) -> List[Dict]:
+    def search_graph(self, note_title: str, depth: int = 2,
+                     top_k: int = 10) -> List[Dict]:
         """BFS graph traversal via wiki-links."""
         with self._conn() as conn:
             # Find starting note
@@ -269,7 +280,8 @@ class SQLiteStore(MemoryStore):
     def update_links(self, note_id: str, wiki_links: List[str]):
         """Update graph edges."""
         with self._conn() as conn:
-            conn.execute("DELETE FROM links WHERE source_note_id = ?", (note_id,))
+            conn.execute("DELETE FROM links WHERE source_note_id = ?",
+                         (note_id,))
             for target_title in wiki_links:
                 target = conn.execute(
                     "SELECT id FROM notes WHERE title = ? AND status = 'active'",
@@ -278,10 +290,12 @@ class SQLiteStore(MemoryStore):
                 if target:
                     conn.execute(
                         """
-                        INSERT OR IGNORE INTO links (id, source_note_id, target_note_id, link_type)
+                        INSERT OR IGNORE INTO links (
+                            id, source_note_id, target_note_id, link_type
+                        )
                         VALUES (?, ?, ?, 'wiki')
                     """,
-                        (str(__import__("uuid").uuid4()), note_id, target["id"]),
+                        (str(uuid.uuid4()), note_id, target["id"]),
                     )
             conn.commit()
 
@@ -291,11 +305,14 @@ class SQLiteStore(MemoryStore):
             note_count = conn.execute(
                 "SELECT COUNT(*) FROM notes WHERE status = 'active'"
             ).fetchone()[0]
-            link_count = conn.execute("SELECT COUNT(*) FROM links").fetchone()[0]
+            link_count = conn.execute(
+                "SELECT COUNT(*) FROM links"
+            ).fetchone()[0]
             pending = conn.execute(
                 "SELECT COUNT(*) FROM prospective WHERE status = 'pending'"
             ).fetchone()[0]
-            return {"notes": note_count, "links": link_count, "pending_reminders": pending}
+            return {"notes": note_count, "links": link_count,
+                    "pending_reminders": pending}
 
     @staticmethod
     def _cosine_similarity(a: List[float], b: List[float]) -> float:
