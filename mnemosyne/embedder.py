@@ -5,7 +5,7 @@ import json
 import hashlib
 import logging
 import threading
-from typing import List
+from typing import List, Optional, Any
 
 logger = logging.getLogger("unified-memory")
 
@@ -23,15 +23,15 @@ class Embedder:
     Tier 3: Deterministic hash-based projection (zero dependencies)
     """
 
-    def __init__(self, model_name: str = EMBEDDING_MODEL, dim: int = EMBEDDING_DIM):
+    def __init__(self, model_name: str = EMBEDDING_MODEL, dim: int = EMBEDDING_DIM) -> None:
         self.model_name = model_name
         self.dim = dim
-        self._model = None
-        self._provider = None
+        self._model: Optional[Any] = None
+        self._provider: Optional[str] = None
         self._lock = threading.Lock()
         self._init_provider()
 
-    def _init_provider(self):
+    def _init_provider(self) -> None:
         """Try embedding providers in order."""
         # Tier 1: sentence-transformers
         try:
@@ -69,6 +69,7 @@ class Embedder:
         with self._lock:
             if self._provider == "sentence-transformers":
                 try:
+                    assert self._model is not None
                     vectors = self._model.encode(texts, convert_to_numpy=True)
                     return [self._normalize(v.tolist()) for v in vectors]
                 except Exception as e:
