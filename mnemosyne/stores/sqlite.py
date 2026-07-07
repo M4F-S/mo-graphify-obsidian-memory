@@ -6,7 +6,7 @@ import math
 import logging
 import sqlite3
 import uuid
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional
 
 from mnemosyne.stores.base import MemoryStore
 
