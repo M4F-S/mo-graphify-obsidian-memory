@@ -16,13 +16,13 @@ __all__ = ["MemoryStore", "PgVectorStore", "SQLiteStore", "create_store"]
 def create_store(dsn: Optional[str] = None) -> MemoryStore:
     """
     Auto-detect the best available store.
-    
+
     Priority:
     1. PostgreSQL (if dsn provided or MEMORY_DB_DSN set and connection works)
     2. SQLite (fallback, always works)
     """
     dsn = dsn or os.environ.get("MEMORY_DB_DSN")
-    
+
     if dsn:
         try:
             store = PgVectorStore(dsn)
@@ -30,7 +30,7 @@ def create_store(dsn: Optional[str] = None) -> MemoryStore:
             return store
         except Exception as e:
             logger.warning(f"PostgreSQL unavailable ({e}), falling back to SQLite")
-    
+
     sqlite_path = os.environ.get(
         "MEMORY_SQLITE_PATH",
         os.path.expanduser("~/.mnemosyne/mnemosyne.db")
