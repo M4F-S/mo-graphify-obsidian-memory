@@ -6,7 +6,7 @@ import math
 import logging
 import sqlite3
 import uuid
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 
 from mnemosyne.stores.base import MemoryStore
 
@@ -24,18 +24,18 @@ class SQLiteStore(MemoryStore):
     Good for <10K notes (fast enough for early users).
     """
 
-    def __init__(self, db_path: str = SQLITE_PATH):
+    def __init__(self, db_path: str = SQLITE_PATH) -> None:
         self.db_path = db_path
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
         self._ensure_schema()
 
-    def _conn(self):
+    def _conn(self) -> sqlite3.Connection:
         """Get a new SQLite connection."""
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
 
-    def _ensure_schema(self):
+    def _ensure_schema(self) -> None:
         """Create tables if they don't exist."""
         with self._conn() as conn:
             conn.executescript(
@@ -156,7 +156,7 @@ class SQLiteStore(MemoryStore):
                 (title, vault_path),
             )
             conn.commit()
-            return cur.rowcount > 0
+            return bool(cur.rowcount > 0)
 
     def search_semantic(
         self, query_embedding: List[float], top_k: int = 10,
@@ -165,7 +165,7 @@ class SQLiteStore(MemoryStore):
         """Brute-force cosine similarity in Python."""
         with self._conn() as conn:
             where = "status = 'active'"
-            params = []
+            params: List[str] = []
             if filters:
                 if filters.get("note_type"):
                     where += " AND note_type = ?"
@@ -256,7 +256,9 @@ class SQLiteStore(MemoryStore):
 
         scores: Dict[str, Dict] = {}
 
-        def add_results(results, source, weight):
+        def add_results(
+            results: List[Dict], source: str, weight: float
+        ) -> None:
             for rank, r in enumerate(results, 1):
                 nid = str(r["id"])
                 if nid not in scores:
@@ -277,7 +279,7 @@ class SQLiteStore(MemoryStore):
         )
         return sorted_results[:top_k]
 
-    def update_links(self, note_id: str, wiki_links: List[str]):
+    def update_links(self, note_id: str, wiki_links: List[str]) -> None:
         """Update graph edges."""
         with self._conn() as conn:
             conn.execute("DELETE FROM links WHERE source_note_id = ?",
@@ -299,7 +301,7 @@ class SQLiteStore(MemoryStore):
                     )
             conn.commit()
 
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> Dict[str, int]:
         """Get vault statistics."""
         with self._conn() as conn:
             note_count = conn.execute(
