@@ -1,6 +1,6 @@
 ---
 title: "Decision: Use GitHub + Memory Vault for Persistence"
-date: 2026-07-06
+date: 2026-07-07
 tags: [decision, tooling, git, persistence]
 type: decision
 salience: 0.9
@@ -38,12 +38,31 @@ We use TWO persistence mechanisms:
   ├── decisions/        # Architectural decisions
   ├── sessions/         # Session summaries
   ├── issues/           # Bugs and issues
+  ├── reviews/          # Pre-build reviews and audits
   ├── roadmap/          # Roadmap versions
   └── *.md             # Regular notes
   ```
 - Syncs to PostgreSQL for search, but files are source of truth
 
-### Why Both?
+### Vault-to-GitHub Sync Protocol (Added in v1.1)
+
+After each phase, sync decisions from vault to repo:
+
+```bash
+# Copy new decisions from vault to repo
+cp ~/Documents/Kimi/Workspaces/Mnemosyne/obsidian-vault/decisions/* docs/decisions/
+cp ~/Documents/Kimi/Workspaces/Mnemosyne/obsidian-vault/sessions/* docs/sessions/
+cp ~/Documents/Kimi/Workspaces/Mnemosyne/obsidian-vault/reviews/* docs/reviews/
+
+# Commit and push
+git add docs/decisions/ docs/sessions/ docs/reviews/
+git commit -m "docs: sync decisions and session logs from vault"
+git push origin develop
+```
+
+**Rationale:** The vault is searchable and linked (wiki-links), but GitHub is versioned and collaborative. Both are needed.
+
+## Why Both?
 
 - GitHub: For code, collaboration, version control, CI/CD
 - Memory Vault: For decisions that need to survive context compression and be searchable
@@ -61,8 +80,9 @@ GitHub alone doesn't solve context compression - READMEs and docs are static. Th
 
 - Positive: Decisions are searchable, linked, persistent
 - Negative: Two places to maintain (GitHub + vault)
-- Mitigation: The vault is the product - we're dogfooding. GitHub is for code only.
+- Mitigation: The vault is the product - we're dogfooding. GitHub is for code only. Sync protocol automates the duplication.
 
 ## Status: ACCEPTED
 
-## Date: 2026-07-06
+## Date: 2026-07-07 (updated from 2026-07-06)
+## Version: 1.1
