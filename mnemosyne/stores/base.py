@@ -29,7 +29,8 @@ class MemoryStore(ABC):
 
     @abstractmethod
     def search_semantic(
-        self, query_embedding: List[float], top_k: int = 10, filters: Optional[Dict] = None
+        self, query_embedding: List[float], top_k: int = 10,
+        filters: Optional[Dict] = None
     ) -> List[Dict]:
         """Vector similarity search."""
         pass
@@ -40,7 +41,8 @@ class MemoryStore(ABC):
         pass
 
     @abstractmethod
-    def search_graph(self, note_title: str, depth: int = 2, top_k: int = 10) -> List[Dict]:
+    def search_graph(self, note_title: str, depth: int = 2,
+                     top_k: int = 10) -> List[Dict]:
         """Graph traversal via wiki-links."""
         pass
 
@@ -52,11 +54,11 @@ class MemoryStore(ABC):
         pass
 
     @abstractmethod
-    def update_links(self, note_id: str, wiki_links: List[str]):
+    def update_links(self, note_id: str, wiki_links: List[str]) -> None:
         """Update graph edges."""
         pass
 
     @abstractmethod
-    def get_stats(self) -> Dict:
+    def get_stats(self) -> Dict[str, int]:
         """Get vault statistics."""
         pass
