@@ -10,10 +10,13 @@ class TestIntegration:
     def memory(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             from mnemosyne import UnifiedMemorySystem
+
             mem = UnifiedMemorySystem(
                 vault_path=tmpdir,
-                dsn=os.environ.get("MEMORY_DB_DSN", "postgresql://mnemosyne:mnemosyne@localhost:5432/mnemosyne"),
-                auto_sync=False
+                dsn=os.environ.get(
+                    "MEMORY_DB_DSN", "postgresql://mnemosyne:mnemosyne@localhost:5432/mnemosyne"
+                ),
+                auto_sync=False,
             )
             yield mem
 

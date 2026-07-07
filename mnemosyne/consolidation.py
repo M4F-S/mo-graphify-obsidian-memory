@@ -32,14 +32,16 @@ class ConsolidationEngine:
         """Archive notes not updated in 90 days with salience < 0.2."""
         with self.db._conn() as conn:
             with conn.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     UPDATE notes
                     SET status = 'archived'
                     WHERE status = 'active'
                       AND updated_at < NOW() - INTERVAL '90 days'
                       AND salience < 0.2
                     RETURNING id;
-                """)
+                """
+                )
                 archived = len(cur.fetchall())
                 conn.commit()
                 return archived

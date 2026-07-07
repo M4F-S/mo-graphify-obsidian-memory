@@ -1,6 +1,5 @@
 """Unified Memory System — main API class."""
 
-import os
 import logging
 from typing import List, Dict, Optional
 
@@ -42,9 +41,15 @@ class UnifiedMemorySystem:
             except Exception as e:
                 logging.warning(f"Auto-sync failed: {e}. Call memory.sync() manually.")
 
-    def remember(self, title: str, content: str, tags: List[str] = None,
-                 note_type: str = "concept", links: List[str] = None,
-                 salience: Optional[float] = None) -> Dict:
+    def remember(
+        self,
+        title: str,
+        content: str,
+        tags: List[str] = None,
+        note_type: str = "concept",
+        links: List[str] = None,
+        salience: Optional[float] = None,
+    ) -> Dict:
         """
         Write a memory. Goes through admission control before persisting.
         Returns: {"success": bool, "note_id": str, "reason": str}
@@ -57,17 +62,29 @@ class UnifiedMemorySystem:
             return {"success": False, "note_id": None, "reason": reason}
 
         if salience is None:
-            salience = self.salience.score({"type": note_type, "tags": tags}, content, self.db.get_stats())
+            salience = self.salience.score(
+                {"type": note_type, "tags": tags}, content, self.db.get_stats()
+            )
 
         self.vault.write_note(title, content, tags, note_type, "active", salience, links)
         embedding = self.embedder.embed([content])[0] if content else [0.0] * EMBEDDING_DIM
-        note_id = self.db.upsert_note(title, content, tags, note_type, "active", salience, embedding, str(self.vault.vault_path))
+        note_id = self.db.upsert_note(
+            title,
+            content,
+            tags,
+            note_type,
+            "active",
+            salience,
+            embedding,
+            str(self.vault.vault_path),
+        )
         self.db.update_links(note_id, links)
         logger.info(f"Remembered: {title} (salience={salience:.2f})")
         return {"success": True, "note_id": note_id, "reason": reason}
 
-    def recall(self, query: str, mode: str = "hybrid", top_k: int = 10,
-               filters: Optional[Dict] = None) -> List[Dict]:
+    def recall(
+        self, query: str, mode: str = "hybrid", top_k: int = 10, filters: Optional[Dict] = None
+    ) -> List[Dict]:
         """Search memories. mode: hybrid (default), semantic, keyword, graph."""
         if mode == "semantic":
             emb = self.embedder.embed([query])[0]
@@ -80,8 +97,9 @@ class UnifiedMemorySystem:
             emb = self.embedder.embed([query])[0]
             return self.db.hybrid_search(query, emb, top_k)
 
-    def remind_me(self, title: str, trigger_at: str, content: str = "",
-                  recurring: Optional[str] = None) -> str:
+    def remind_me(
+        self, title: str, trigger_at: str, content: str = "", recurring: Optional[str] = None
+    ) -> str:
         """Schedule a future reminder."""
         return self.prospective.schedule(title, content, trigger_at, recurring)
 

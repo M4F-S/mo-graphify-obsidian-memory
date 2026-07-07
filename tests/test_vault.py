@@ -17,6 +17,7 @@ class TestVaultManager:
 
     def test_safe_filename_unicode(self):
         from mnemosyne.vault import safe_filename
+
         assert safe_filename("Hello World") == "Hello World.md"
         assert safe_filename("会议记录") == "会议记录.md"
         assert safe_filename("Запись") == "Запись.md"

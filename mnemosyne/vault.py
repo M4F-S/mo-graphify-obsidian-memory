@@ -11,15 +11,14 @@ from typing import List, Dict, Optional
 logger = logging.getLogger("unified-memory")
 
 VAULT_PATH = os.environ.get(
-    "MEMORY_VAULT_PATH",
-    "/Users/mohamedfathy/Documents/Kimi/Workspaces/Mnemosyne/obsidian-vault"
+    "MEMORY_VAULT_PATH", "/Users/mohamedfathy/Documents/Kimi/Workspaces/Mnemosyne/obsidian-vault"
 )
 
 
 def safe_filename(title: str) -> str:
     """Convert a title to a safe filename."""
-    normalized = unicodedata.normalize('NFKC', title)
-    safe = re.sub(r'[<>:"/\\|?*\x00-\x1f]', '-', normalized)
+    normalized = unicodedata.normalize("NFKC", title)
+    safe = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "-", normalized)
     safe = safe.strip()[:200]
     return safe + ".md" if safe else "untitled.md"
 
@@ -34,9 +33,16 @@ class VaultManager:
         self.vault_path = Path(vault_path)
         self.vault_path.mkdir(parents=True, exist_ok=True)
 
-    def write_note(self, title: str, content: str, tags: List[str] = None,
-                   note_type: str = "concept", status: str = "active",
-                   salience: float = 0.5, links: List[str] = None) -> Path:
+    def write_note(
+        self,
+        title: str,
+        content: str,
+        tags: List[str] = None,
+        note_type: str = "concept",
+        status: str = "active",
+        salience: float = 0.5,
+        links: List[str] = None,
+    ) -> Path:
         """Write a note to the vault."""
         tags = tags or []
         links = links or []
@@ -59,7 +65,10 @@ class VaultManager:
                 body += f"- [[{link}]]\n"
 
         import yaml
-        yaml_content = yaml.dump(frontmatter, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+        yaml_content = yaml.dump(
+            frontmatter, default_flow_style=False, allow_unicode=True, sort_keys=False
+        )
         full = f"---\n{yaml_content}---\n{body}\n"
         filepath.write_text(full, encoding="utf-8")
         return filepath
@@ -76,7 +85,7 @@ class VaultManager:
         body = result["body"]
         heading = f"# {title}\n\n"
         if body.startswith(heading):
-            result["content"] = body[len(heading):]
+            result["content"] = body[len(heading) :]
         else:
             result["content"] = body
         return result
@@ -84,6 +93,7 @@ class VaultManager:
     def _parse_note(self, text: str) -> Dict:
         """Parse markdown with YAML frontmatter."""
         import yaml
+
         if text.startswith("---"):
             parts = text.split("---", 2)
             if len(parts) >= 3:
@@ -97,7 +107,7 @@ class VaultManager:
 
     def extract_wiki_links(self, text: str) -> List[str]:
         """Extract [[Wiki Links]] from text."""
-        return re.findall(r'\[\[(.*?)\]\]', text)
+        return re.findall(r"\[\[(.*?)\]\]", text)
 
     def _extract_wiki_links(self, text: str) -> List[str]:
         """Private alias for extract_wiki_links."""
@@ -110,6 +120,7 @@ class VaultManager:
     def sync_to_db(self, db, embedder) -> Dict:
         """Sync all vault files to the database."""
         from mnemosyne.embedder import EMBEDDING_DIM
+
         stats = {"upserted": 0, "deleted": 0, "errors": 0}
         for filepath in self.list_notes():
             try:
@@ -123,7 +134,16 @@ class VaultManager:
                 status = fm.get("status", "active")
                 salience = float(fm.get("salience", 0.5))
                 embedding = embedder.embed([content])[0] if content else [0.0] * EMBEDDING_DIM
-                note_id = db.upsert_note(title, content, tags, note_type, status, salience, embedding, str(self.vault_path))
+                note_id = db.upsert_note(
+                    title,
+                    content,
+                    tags,
+                    note_type,
+                    status,
+                    salience,
+                    embedding,
+                    str(self.vault_path),
+                )
                 wiki_links = self.extract_wiki_links(text)
                 db.update_links(note_id, wiki_links)
                 stats["upserted"] += 1

@@ -36,6 +36,7 @@ class Embedder:
         # Tier 1: sentence-transformers
         try:
             from sentence_transformers import SentenceTransformer
+
             self._model = SentenceTransformer(self.model_name)
             self._provider = "sentence-transformers"
             logger.info(f"Embedder: using sentence-transformers ({self.model_name})")
@@ -46,6 +47,7 @@ class Embedder:
         # Tier 2: Ollama
         try:
             import urllib.request
+
             req = urllib.request.Request(f"{OLLAMA_URL}/api/tags", method="GET")
             with urllib.request.urlopen(req, timeout=2) as resp:
                 if resp.status == 200:
@@ -76,6 +78,7 @@ class Embedder:
             if self._provider == "ollama":
                 try:
                     import urllib.request
+
                     results = []
                     for text in texts:
                         body = json.dumps({"model": self.model_name, "prompt": text}).encode()
@@ -83,7 +86,7 @@ class Embedder:
                             f"{OLLAMA_URL}/api/embeddings",
                             data=body,
                             headers={"Content-Type": "application/json"},
-                            method="POST"
+                            method="POST",
                         )
                         with urllib.request.urlopen(req, timeout=30) as resp:
                             data = json.loads(resp.read())
@@ -114,7 +117,7 @@ class Embedder:
         if len(vec) < self.dim:
             vec.extend([0.0] * (self.dim - len(vec)))
         elif len(vec) > self.dim:
-            vec = vec[:self.dim]
+            vec = vec[: self.dim]
         norm = sum(x * x for x in vec) ** 0.5
         if norm > 0:
             vec = [x / norm for x in vec]
