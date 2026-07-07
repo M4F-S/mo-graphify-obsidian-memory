@@ -69,7 +69,28 @@ psql mnemosyne -c "CREATE EXTENSION vector;"
 ## Installation
 
 ```bash
-pip install psycopg2-binary pyyaml numpy sentence-transformers
+# Clone the repository
+git clone https://github.com/M4F-S/mo-graphify-obsidian-memory
+cd mo-graphify-obsidian-memory
+
+# Install in development mode
+pip install -e ".[dev]"
+```
+
+Or with Make:
+
+```bash
+make install
+```
+
+## Development
+
+```bash
+make test          # Run unit tests
+make test-integration  # Run integration tests (requires PostgreSQL)
+make lint          # Run linting
+make format        # Format code
+make check         # Run all checks
 ```
 
 Set environment variables *(or use defaults)*:
@@ -82,9 +103,9 @@ export MEMORY_VAULT_PATH="/Users/mohamedfathy/Documents/Kimi/Workspaces/Mnemosyn
 ## Quick Start
 
 ```python
-from mo_graphify_memory import UnifiedMemorySystem
+from mnemosyne import UnifiedMemorySystem
 
-# Initialize (auto-creates DB schema and syncs vault)
+# Initialize (auto-creates DB schema; sync vault manually)
 memory = UnifiedMemorySystem()
 
 # Remember something
@@ -172,4 +193,4 @@ The vault format (YAML frontmatter + wiki-links) is unchanged.
 
 ## License
 
-MIT
+Apache 2.0
