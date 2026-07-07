@@ -46,7 +46,9 @@ jobs:
         run: flake8 mnemosyne/ tests/
 
       - name: Run mypy
-        run: mypy mnemosyne/
+        run: |
+          mypy --version
+          mypy --show-error-codes mnemosyne/
 
       - name: Run unit tests
         run: pytest tests/ -v -m "not integration" --cov=mnemosyne --cov-report=xml
