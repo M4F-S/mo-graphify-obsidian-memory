@@ -4,7 +4,8 @@ import logging
 from typing import List, Dict, Optional
 
 from mnemosyne.vault import VaultManager, VAULT_PATH
-from mnemosyne.stores.postgres import PgVectorStore, DB_DSN
+from mnemosyne.stores import create_store
+from mnemosyne.stores.postgres import DB_DSN
 from mnemosyne.embedder import Embedder, EMBEDDING_DIM
 from mnemosyne.security import AdmissionControl, SalienceEngine
 from mnemosyne.prospective import ProspectiveMemory
@@ -28,7 +29,7 @@ class UnifiedMemorySystem:
 
     def __init__(self, vault_path: str = VAULT_PATH, dsn: str = DB_DSN, auto_sync: bool = False):
         self.vault = VaultManager(vault_path)
-        self.db = PgVectorStore(dsn)
+        self.db = create_store(dsn)
         self.embedder = Embedder()
         self.admission = AdmissionControl(self.db, self.embedder)
         self.salience = SalienceEngine()
