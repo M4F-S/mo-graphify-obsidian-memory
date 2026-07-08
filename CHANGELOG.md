@@ -15,19 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Admission control and salience scoring
 - Prospective memory (reminders)
 - Memory consolidation (archive + relink)
-- SQLite fallback store (zero-config, no PostgreSQL needed)
-- Cross-platform compatibility (macOS, Linux, Windows)
 
 ### Changed
 - Restructured from single file to proper Python package
-- `prospective.py` and `consolidation.py` now auto-detect SQLite vs PostgreSQL
 
 ### Fixed
-- **SQLite compatibility**: `prospective.py` and `consolidation.py` now work with SQLite fallback
-  - Fixed `AttributeError: __enter__` on cursor context managers (sqlite3 doesn't support `with conn.cursor()`)
-  - Fixed PostgreSQL-only `NOW() + INTERVAL` syntax for SQLite `datetime()`
-  - Fixed PostgreSQL-only `RETURNING id` with manual UUID generation for SQLite
-  - Fixed `%s` placeholders to `?` for SQLite dialect
 - Race condition in Embedder
 - MCP exception handler NameError
 - Unicode filename handling
