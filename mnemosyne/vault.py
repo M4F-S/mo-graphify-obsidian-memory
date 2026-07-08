@@ -29,7 +29,7 @@ class VaultManager:
     Files are the source of truth; the database is a rebuildable index.
     """
 
-    def __init__(self, vault_path: str = VAULT_PATH):
+    def __init__(self, vault_path: str = VAULT_PATH) -> None:
         self.vault_path = Path(vault_path)
         self.vault_path.mkdir(parents=True, exist_ok=True)
 
@@ -37,11 +37,11 @@ class VaultManager:
         self,
         title: str,
         content: str,
-        tags: List[str] = None,
+        tags: Optional[List[str]] = None,
         note_type: str = "concept",
         status: str = "active",
         salience: float = 0.5,
-        links: List[str] = None,
+        links: Optional[List[str]] = None,
     ) -> Path:
         """Write a note to the vault."""
         tags = tags or []
@@ -64,7 +64,7 @@ class VaultManager:
             for link in links:
                 body += f"- [[{link}]]\n"
 
-        import yaml
+        import yaml  # type: ignore[import-untyped]
 
         yaml_content = yaml.dump(
             frontmatter, default_flow_style=False, allow_unicode=True, sort_keys=False
@@ -85,14 +85,14 @@ class VaultManager:
         body = result["body"]
         heading = f"# {title}\n\n"
         if body.startswith(heading):
-            result["content"] = body[len(heading) :]
+            result["content"] = body[len(heading):]
         else:
             result["content"] = body
         return result
 
     def _parse_note(self, text: str) -> Dict:
         """Parse markdown with YAML frontmatter."""
-        import yaml
+        import yaml  # type: ignore[import-untyped]
 
         if text.startswith("---"):
             parts = text.split("---", 2)

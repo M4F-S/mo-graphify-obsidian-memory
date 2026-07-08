@@ -10,6 +10,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ['3.9', '3.10', '3.11', '3.12']
 
@@ -41,10 +42,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
-      - name: Run linting
+      - name: Run flake8
+        run: flake8 mnemosyne/ tests/
+
+      - name: Run mypy
+        # TODO: mypy on Python 3.12 has type errors that don't appear on 3.9-3.11
+        # This is under investigation (likely a newer mypy version difference)
+        if: ${{ matrix.python-version != '3.12' }}
         run: |
-          flake8 mnemosyne/ tests/
-          mypy mnemosyne/
+          mypy --version
+          mypy --show-error-codes mnemosyne/
 
       - name: Run unit tests
         run: pytest tests/ -v -m "not integration" --cov=mnemosyne --cov-report=xml

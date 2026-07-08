@@ -46,9 +46,31 @@ Your Question: "What did we decide about the API rate limit?"
 +---------------------------------------------+
 ```
 
+## Try Without PostgreSQL!
+
+Mnemosyne now works with SQLite — no database setup required:
+
+```bash
+pip install -e .
+python -c "from mnemosyne import UnifiedMemorySystem; m = UnifiedMemorySystem()"
+```
+
+By default, if PostgreSQL is not available, Mnemosyne automatically uses SQLite
+stored at `~/.mnemosyne/mnemosyne.db`. Markdown vault files still work the same way.
+
+To force PostgreSQL, set `MEMORY_DB_DSN`:
+```bash
+export MEMORY_DB_DSN="postgresql://..."
+```
+
+To force SQLite, set `MEMORY_SQLITE_PATH`:
+```bash
+export MEMORY_SQLITE_PATH="/path/to/mnemosyne.db"
+```
+
 ## Prerequisites
 
-- **PostgreSQL 14+** with [pgvector](https://github.com/pgvector/pgvector) extension
+- **PostgreSQL 14+** with [pgvector](https://github.com/pgvector/pgvector) extension (optional — SQLite works out of the box)
 - **Python 3.9+**
 - Python packages: `psycopg2-binary`, `pyyaml`, `numpy`
 - *(Optional)* `sentence-transformers` for better local embeddings
@@ -138,6 +160,7 @@ memory.consolidate()
 |-----------|---------------|
 | `UnifiedMemorySystem` | Main API — `remember()`, `recall()`, `remind_me()`, `consolidate()` |
 | `PgVectorStore` | PostgreSQL + pgvector for semantic (cosine similarity), keyword (tsvector), and graph (recursive CTE) search |
+| `SQLiteStore` | SQLite fallback with brute-force cosine similarity and substring keyword search |
 | `VaultManager` | Obsidian-compatible markdown file I/O with YAML frontmatter |
 | `Embedder` | 3-tier embedding: sentence-transformers → Ollama → deterministic hash fallback |
 | `AdmissionControl` | Security gate: injection detection, near-duplicate check, length validation |
