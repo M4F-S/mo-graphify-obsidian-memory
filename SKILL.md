@@ -51,9 +51,9 @@ Production-grade unified memory for AI agents. Remember conversations, search by
 ## Quick Start
 
 ```python
-from mo_graphify_memory import UnifiedMemorySystem
+from mnemosyne import UnifiedMemorySystem
 
-memory = UnifiedMemorySystem()  # Auto-syncs vault to DB
+memory = UnifiedMemorySystem()  # Auto-creates DB schema
 
 # Save a memory
 memory.remember(
@@ -105,7 +105,7 @@ docker run -d --name unified-memory-pg \
   ankane/pgvector:latest
 
 # Python dependencies
-pip install psycopg2-binary pyyaml numpy sentence-transformers
+pip install -e ".[dev]"
 
 # Environment variables
 export MEMORY_DB_DSN="postgresql://mnemosyne:mnemosyne_secret@localhost:15432/mnemosyne"
@@ -116,10 +116,9 @@ export MEMORY_VAULT_PATH="$HOME/Documents/Kimi/Workspaces/Mnemosyne/obsidian-vau
 
 | File | Purpose |
 |------|---------|
-| `scripts/mo_graphify_memory.py` | Full Python implementation (import this) |
+| `mnemosyne/` | Python package (import this) |
 | `~/Mnemosyne/obsidian-vault/` | Your notes (source of truth) |
 | `~/.unified_memory_env` | Environment variables |
-| `test_report.md` | 32/33 tests passed |
 
 ## Best Practices
 
@@ -150,10 +149,8 @@ The vault format (YAML frontmatter + wiki-links) is unchanged.
 
 ## Implementation
 
-The full Python implementation is in `scripts/mo_graphify_memory.py` (~1,200 lines). Import it to use the system:
+The full Python implementation is in the `mnemosyne/` package. Import it to use the system:
 
 ```python
-import sys
-sys.path.insert(0, "/path/to/this/skill/scripts")
-from mo_graphify_memory import UnifiedMemorySystem, MemoryMCPServer, autoload_memory
+from mnemosyne import UnifiedMemorySystem, MemoryMCPServer
 ```

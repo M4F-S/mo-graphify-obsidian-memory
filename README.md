@@ -46,9 +46,31 @@ Your Question: "What did we decide about the API rate limit?"
 +---------------------------------------------+
 ```
 
+## Try Without PostgreSQL!
+
+Mnemosyne now works with SQLite — no database setup required:
+
+```bash
+pip install -e .
+python -c "from mnemosyne import UnifiedMemorySystem; m = UnifiedMemorySystem()"
+```
+
+By default, if PostgreSQL is not available, Mnemosyne automatically uses SQLite
+stored at `~/.mnemosyne/mnemosyne.db`. Markdown vault files still work the same way.
+
+To force PostgreSQL, set `MEMORY_DB_DSN`:
+```bash
+export MEMORY_DB_DSN="postgresql://..."
+```
+
+To force SQLite, set `MEMORY_SQLITE_PATH`:
+```bash
+export MEMORY_SQLITE_PATH="/path/to/mnemosyne.db"
+```
+
 ## Prerequisites
 
-- **PostgreSQL 14+** with [pgvector](https://github.com/pgvector/pgvector) extension
+- **PostgreSQL 14+** with [pgvector](https://github.com/pgvector/pgvector) extension (optional — SQLite works out of the box)
 - **Python 3.9+**
 - Python packages: `psycopg2-binary`, `pyyaml`, `numpy`
 - *(Optional)* `sentence-transformers` for better local embeddings
@@ -69,7 +91,28 @@ psql mnemosyne -c "CREATE EXTENSION vector;"
 ## Installation
 
 ```bash
-pip install psycopg2-binary pyyaml numpy sentence-transformers
+# Clone the repository
+git clone https://github.com/M4F-S/mo-graphify-obsidian-memory
+cd mo-graphify-obsidian-memory
+
+# Install in development mode
+pip install -e ".[dev]"
+```
+
+Or with Make:
+
+```bash
+make install
+```
+
+## Development
+
+```bash
+make test          # Run unit tests
+make test-integration  # Run integration tests (requires PostgreSQL)
+make lint          # Run linting
+make format        # Format code
+make check         # Run all checks
 ```
 
 Set environment variables *(or use defaults)*:
@@ -82,9 +125,9 @@ export MEMORY_VAULT_PATH="/Users/mohamedfathy/Documents/Kimi/Workspaces/Mnemosyn
 ## Quick Start
 
 ```python
-from mo_graphify_memory import UnifiedMemorySystem
+from mnemosyne import UnifiedMemorySystem
 
-# Initialize (auto-creates DB schema and syncs vault)
+# Initialize (auto-creates DB schema; sync vault manually)
 memory = UnifiedMemorySystem()
 
 # Remember something
@@ -117,6 +160,7 @@ memory.consolidate()
 |-----------|---------------|
 | `UnifiedMemorySystem` | Main API — `remember()`, `recall()`, `remind_me()`, `consolidate()` |
 | `PgVectorStore` | PostgreSQL + pgvector for semantic (cosine similarity), keyword (tsvector), and graph (recursive CTE) search |
+| `SQLiteStore` | SQLite fallback with brute-force cosine similarity and substring keyword search |
 | `VaultManager` | Obsidian-compatible markdown file I/O with YAML frontmatter |
 | `Embedder` | 3-tier embedding: sentence-transformers → Ollama → deterministic hash fallback |
 | `AdmissionControl` | Security gate: injection detection, near-duplicate check, length validation |
@@ -172,4 +216,4 @@ The vault format (YAML frontmatter + wiki-links) is unchanged.
 
 ## License
 
-MIT
+Apache 2.0
