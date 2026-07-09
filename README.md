@@ -1,219 +1,48 @@
-# mo-graphify-obsidian-memory
+# ⚠️ DEPRECATED — Moved to New Repositories
 
-> **Production-grade unified memory system for AI agents**
->
-> Gives your AI agent a persistent brain: it can remember conversations, search memories by meaning, schedule future reminders, and protect itself from poisoned data. Everything is stored in plain markdown files you can read and edit in Obsidian, VS Code, or any text editor.
+This repository has been **split into two focused repositories** for better organization:
 
-## What This Skill Does
+## 🧠 Mnemosyne Platform (Full Project)
+**Research, architecture, build plans, infrastructure**
 
-| Feature | What It Means For You |
-|---------|----------------------|
-| **Markdown Vault** | All memories are plain `.md` files with YAML frontmatter. You own your data. |
-| **Semantic Search** | Ask "what did we discuss about neural networks?" — it finds related ideas even if the exact words don't match. |
-| **Graph Memory** | Notes link to each other via `[[Wiki Links]]`. The agent sees relationships, not isolated facts. |
-| **Security Gate** | Bad data (prompt injection, contradictions, low-quality content) is caught before it poisons long-term memory. |
-| **Salience Scoring** | Important memories (failures, user emphasis, contradictions) are weighted higher and persist longer. |
-| **Prospective Memory** | The agent can set reminders: *"Check this again in 3 days"* — and actually surface them when due. |
-| **Sleep Consolidation** | Nightly maintenance batch: archive stale notes, rebuild graph edges, merge duplicates. |
-| **MCP Server** | Claude Code, Cursor, and any MCP client can read/write the agent's memory directly via JSON-RPC. |
+→ **https://github.com/M4F-S/mnemosyne**
 
-## Architecture
+Contains:
+- Research documents and competitive analysis
+- Architecture and design decisions
+- V3 rebuild plan and strategic decisions
+- Docker, Makefile, CI/CD infrastructure
+- Platform builder brief and setup guides
 
-```
-Your Question: "What did we decide about the API rate limit?"
-                |
-                v
-+---------------------------------------------+
-|  UNIFIED MEMORY SYSTEM                      |
-|  +-----------+ +-----------+ +-----------+  |
-|  | Semantic  | |  Keyword  | |   Graph   |  |
-|  |  Search   | |  Search   | |  Search   |  |
-|  | (pgvector)| |(tsvector) | |(wiki-links|  |
-|  +-----+-----+ +-----+-----+ +-----+-----+  |
-|        |             |             |         |
-|        +-------------+-------------+         |
-|                      |                       |
-|            +---------v---------+             |
-|            |  Merge Results    |             |
-|            |   (RRF Rank)      |             |
-|            +---------+---------+             |
-|                      |                       |
-|  +-------------------v--------------------+  |
-|  |    Markdown Files (Obsidian Vault)     |  |
-|  |  ~/Documents/Kimi/Workspaces/Mnemosyne |  |
-|  |            /obsidian-vault/            |  |
-|  +----------------------------------------+  |
-+---------------------------------------------+
-```
+## 🔌 Kimi Mnemosyne Skill (Minimal Skill)
+**Kimi AI integration — clean, installable, focused**
 
-## Try Without PostgreSQL!
+→ **https://github.com/M4F-S/kimi-mnemosyne-skill**
 
-Mnemosyne now works with SQLite — no database setup required:
+Contains:
+- `SKILL.md` — Kimi skill definition
+- `mnemosyne/` — Python package (core, vault, embedder, security, MCP server, stores)
+- `tests/` — Full test suite
+- `pyproject.toml` — Package configuration
 
-```bash
-pip install -e .
-python -c "from mnemosyne import UnifiedMemorySystem; m = UnifiedMemorySystem()"
-```
+---
 
-By default, if PostgreSQL is not available, Mnemosyne automatically uses SQLite
-stored at `~/.mnemosyne/mnemosyne.db`. Markdown vault files still work the same way.
+## Why the Split?
 
-To force PostgreSQL, set `MEMORY_DB_DSN`:
-```bash
-export MEMORY_DB_DSN="postgresql://..."
-```
+The original repo mixed **skill files** (for Kimi AI integration) with **platform files** (research, docs, infrastructure). This made it confusing for users who just wanted the skill vs. those who wanted the full platform.
 
-To force SQLite, set `MEMORY_SQLITE_PATH`:
-```bash
-export MEMORY_SQLITE_PATH="/path/to/mnemosyne.db"
-```
+**Now:**
+- Developers who want to **use memory in Kimi** → `kimi-mnemosyne-skill`
+- Developers who want to **contribute to the platform** → `mnemosyne`
 
-## Prerequisites
+---
 
-- **PostgreSQL 14+** with [pgvector](https://github.com/pgvector/pgvector) extension (optional — SQLite works out of the box)
-- **Python 3.9+**
-- Python packages: `psycopg2-binary`, `pyyaml`, `numpy`
-- *(Optional)* `sentence-transformers` for better local embeddings
+## Original Description
 
-### Quick PostgreSQL Setup (macOS)
+> Production-grade unified memory system for AI agents. Gives your AI agent a persistent brain: it can remember conversations, search memories by meaning, schedule future reminders, and protect itself from poisoned data. Everything is stored in plain markdown files you can read and edit in Obsidian, VS Code, or any text editor.
 
-```bash
-brew install postgresql@16 pgvector
-brew services start postgresql@16
+This functionality now lives in the two repositories linked above.
 
-# Create database
-createdb mnemosyne
+---
 
-# Install pgvector in psql
-psql mnemosyne -c "CREATE EXTENSION vector;"
-```
-
-## Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/M4F-S/mo-graphify-obsidian-memory
-cd mo-graphify-obsidian-memory
-
-# Install in development mode
-pip install -e ".[dev]"
-```
-
-Or with Make:
-
-```bash
-make install
-```
-
-## Development
-
-```bash
-make test          # Run unit tests
-make test-integration  # Run integration tests (requires PostgreSQL)
-make lint          # Run linting
-make format        # Format code
-make check         # Run all checks
-```
-
-Set environment variables *(or use defaults)*:
-
-```bash
-export MEMORY_DB_DSN="postgresql://localhost:5432/mnemosyne"
-export MEMORY_VAULT_PATH="/Users/mohamedfathy/Documents/Kimi/Workspaces/Mnemosyne/obsidian-vault"
-```
-
-## Quick Start
-
-```python
-from mnemosyne import UnifiedMemorySystem
-
-# Initialize (auto-creates DB schema; sync vault manually)
-memory = UnifiedMemorySystem()
-
-# Remember something
-memory.remember(
-    title="API Rate Limit Decision",
-    content="We decided on 100 req/min with burst to 200. Monitor p95 latency; alert if >200ms.",
-    tags=["api", "infrastructure", "decision"],
-    salience=0.9  # High importance
-)
-
-# Search by meaning
-results = memory.recall("rate limiting policy")
-for r in results:
-    print(f"{r['title']}: {r['score']:.2f}")
-
-# Set a future reminder
-memory.remind_me(
-    title="Review API metrics",
-    trigger_at="2026-07-07T09:00:00",
-    recurring="weekly"
-)
-
-# Run nightly consolidation (merge duplicates, archive stale)
-memory.consolidate()
-```
-
-## Core Components
-
-| Component | Responsibility |
-|-----------|---------------|
-| `UnifiedMemorySystem` | Main API — `remember()`, `recall()`, `remind_me()`, `consolidate()` |
-| `PgVectorStore` | PostgreSQL + pgvector for semantic (cosine similarity), keyword (tsvector), and graph (recursive CTE) search |
-| `SQLiteStore` | SQLite fallback with brute-force cosine similarity and substring keyword search |
-| `VaultManager` | Obsidian-compatible markdown file I/O with YAML frontmatter |
-| `Embedder` | 3-tier embedding: sentence-transformers → Ollama → deterministic hash fallback |
-| `AdmissionControl` | Security gate: injection detection, near-duplicate check, length validation |
-| `SalienceEngine` | Scores memory importance (0.0–1.0) based on emphasis markers, note type, and length |
-| `ProspectiveMemory` | Scheduled future reminders with recurring support (daily/weekly/monthly) |
-| `ConsolidationEngine` | Sleep-time batch: archive stale notes, rebuild links |
-| `MemoryMCPServer` | JSON-RPC 2.0 MCP server exposing tools to external clients |
-
-## MCP Tools
-
-Compatible with Claude Code, Cursor, and any MCP stdio client:
-
-- `memory_remember` — Save a fact or decision
-- `memory_recall` — Search memory (hybrid, semantic, keyword, or graph)
-- `memory_remind_me` — Schedule a reminder
-- `memory_audit` — Health check and statistics
-
-## Embedding Engine (3-Tier Fallback)
-
-1. **sentence-transformers** — local, fast, no API calls
-2. **Ollama** — local LLM server (`ollama pull nomic-embed-text`)
-3. **Deterministic hash** — zero external dependencies, always works
-
-## Search Modes
-
-| Mode | Use When |
-|------|----------|
-| `hybrid` *(default)* | Best overall results; fuses semantic + keyword + salience via RRF |
-| `semantic` | Finding related concepts even with different wording |
-| `keyword` | Exact matches and specific terms |
-| `graph` | Exploring connections from a known note (`[[Note Title]]`) |
-
-## Best Practices
-
-1. **Files are the source of truth** — you can edit `.md` files directly in Obsidian.
-2. **Run `memory.sync()` after external edits** — re-indexes the database.
-3. **Use salience wisely** — `0.9` for critical decisions, `0.3` for daily journals.
-4. **Link aggressively** — every note should connect to at least 2 others via `[[Wiki Links]]`.
-5. **Run consolidation weekly** — keeps the vault clean and fast.
-6. **Back up the vault** — it's just markdown files. `git init` in the vault directory.
-
-## Migration from v1.0
-
-All v1.0 functions still work — they delegate to the new `UnifiedMemorySystem`:
-
-- `create_note()` ✅
-- `read_note()` ✅
-- `search_notes()` ✅ *(now uses hybrid search)*
-- `update_note()` ✅
-- `create_moc()` ✅
-
-The vault format (YAML frontmatter + wiki-links) is unchanged.
-
-## License
-
-Apache 2.0
+*Last updated: July 9, 2026*
